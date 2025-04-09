@@ -22,31 +22,22 @@ const assign = Object.assign;
 
 class OverlayRect {
   node: HTMLElement;
-  border: HTMLElement;
-  padding: HTMLElement;
-  content: HTMLElement;
 
   constructor(doc: Document, container: HTMLElement) {
     this.node = doc.createElement('div');
-    this.border = doc.createElement('div');
-    this.padding = doc.createElement('div');
-    this.content = doc.createElement('div');
 
-    this.border.style.borderColor = overlayStyles.border;
-    this.padding.style.borderColor = overlayStyles.padding;
-    this.content.style.backgroundColor = overlayStyles.background;
-
+    const red = Math.random() * 255;
+    const green = Math.random() * 255;
+    const blue = Math.random() * 255;
     assign(this.node.style, {
-      borderColor: overlayStyles.margin,
+      backgroundColor: 'rgba(120, 170, 210, 0.1)',
+      border: `1px solid rgba(${red}, ${green}, ${blue}, 0.8)`,
       pointerEvents: 'none',
       position: 'fixed',
     });
 
     this.node.style.zIndex = '10000000';
 
-    this.node.appendChild(this.border);
-    this.border.appendChild(this.padding);
-    this.padding.appendChild(this.content);
     container.appendChild(this.node);
   }
 
@@ -57,11 +48,7 @@ class OverlayRect {
   }
 
   update(box: Rect, dims: any) {
-    boxWrap(dims, 'margin', this.node);
-    boxWrap(dims, 'border', this.border);
-    boxWrap(dims, 'padding', this.padding);
-
-    assign(this.content.style, {
+    assign(this.node.style, {
       height:
         box.height -
         dims.borderTop -
@@ -187,7 +174,7 @@ export default class Overlay {
     }
   }
 
-  inspect(nodes: $ReadOnlyArray<HTMLElement>, name?: ?string) {
+  inspect(nodes: $ReadOnlyArray<HTMLElement>, name?: ?string, featureFlags: any) {
     // We can't get the size of text nodes or comment nodes. React as of v15
     // heavily uses comment nodes to delimit text.
     const elements = nodes.filter(node => node.nodeType === Node.ELEMENT_NODE);
@@ -244,6 +231,7 @@ export default class Overlay {
       name,
       outerBox.right - outerBox.left,
       outerBox.bottom - outerBox.top,
+      featureFlags,
     );
     const tipBounds = getNestedBoundingClientRect(
       this.tipBoundsWindow.document.documentElement,
@@ -308,19 +296,3 @@ function findTipPos(
   };
 }
 
-function boxWrap(dims: any, what: string, node: HTMLElement) {
-  assign(node.style, {
-    borderTopWidth: dims[what + 'Top'] + 'px',
-    borderLeftWidth: dims[what + 'Left'] + 'px',
-    borderRightWidth: dims[what + 'Right'] + 'px',
-    borderBottomWidth: dims[what + 'Bottom'] + 'px',
-    borderStyle: 'solid',
-  });
-}
-
-const overlayStyles = {
-  background: 'rgba(120, 170, 210, 0.7)',
-  padding: 'rgba(77, 200, 0, 0.3)',
-  margin: 'rgba(255, 155, 0, 0.3)',
-  border: 'rgba(255, 200, 50, 0.3)',
-};

@@ -147,6 +147,8 @@ import type {
 import type {Source} from 'react-devtools-shared/src/shared/types';
 import {getSourceLocationByFiber} from './DevToolsFiberComponentStack';
 import {formatOwnerStack} from '../shared/DevToolsOwnerStack';
+import {showOverlay} from "../views/Highlighter/Highlighter";
+import Overlay from "../views/Highlighter/Overlay";
 
 // Kinds
 const FIBER_INSTANCE = 0;
@@ -771,6 +773,8 @@ const rootToFiberInstanceMap: Map<FiberRoot, FiberInstance> = new Map();
 // operations that should be the same whether the current and work-in-progress Fiber is used.
 const idToDevToolsInstanceMap: Map<number, FiberInstance | VirtualInstance> =
   new Map();
+
+window.__dschwarz__idToInstanceMap = idToDevToolsInstanceMap
 
 // Map of canonical HostInstances to the nearest parent DevToolsInstance.
 const publicInstanceToDevToolsInstanceMap: Map<HostInstance, DevToolsInstance> =
@@ -4676,6 +4680,21 @@ export function attach(
     }
   }
 
+  function highlightAllHooks() {
+    var inspected = idToDevToolsInstanceMap.keys()
+      .map(elementId => inspectElementRaw(elementId))
+      .filter(i => i.hooks != null)
+      .filter(i => i.hooks.find(hook => hook.name == "FeatureOn"))
+      .toArray()
+
+    inspected.forEach(i => {
+      var overlay = new Overlay(__REACT_DEVTOOLS_GLOBAL_HOOK__.reactDevtoolsAgent);
+      overlay.inspect(findHostInstancesForElementID(i.id), i.id);
+    });
+
+    return inspected;
+  }
+
   function inspectElement(
     requestID: number,
     id: number,
@@ -5860,6 +5879,8 @@ export function attach(
     // $FlowFixMe: refined.
     return unresolvedSource;
   }
+
+  window.highlightAllHooks = highlightAllHooks;
 
   return {
     cleanup,

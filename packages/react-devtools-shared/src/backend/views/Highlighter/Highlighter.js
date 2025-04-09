@@ -81,3 +81,5 @@ export function showOverlay(
         hideAfterTimeout,
       );
 }
+
+window.showOverlay = showOverlay;
