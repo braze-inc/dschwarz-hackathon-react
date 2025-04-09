@@ -167,7 +167,7 @@ class FeatureToggle {
           [name]: event.target.checked
         });
 
-        window.highlightAllHooks();
+        window.highlightAllFeatures();
       }
     }
   }

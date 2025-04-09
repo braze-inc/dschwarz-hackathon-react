@@ -156,6 +156,7 @@ const VIRTUAL_INSTANCE = 1;
 const FILTERED_FIBER_INSTANCE = 2;
 
 const overlays = [];
+let featureVisionInterval = null;
 
 // This type represents a stateful instance of a Client Component i.e. a Fiber pair.
 // These instances also let us track stateful DevTools meta data like id and warnings.
@@ -4682,7 +4683,7 @@ export function attach(
     }
   }
 
-  function highlightAllHooks() {
+  function highlightAllFeatures() {
     var inspected = idToDevToolsInstanceMap.keys()
       .map(elementId => inspectElementRaw(elementId))
       .filter(i => i.hooks != null)
@@ -5894,7 +5895,20 @@ export function attach(
     return unresolvedSource;
   }
 
-  window.highlightAllHooks = highlightAllHooks;
+  window.highlightAllFeatures = highlightAllFeatures
+
+  window.toggleFeatureVision = function toggleFeatureVision() {
+    if (featureVisionInterval) {
+      clearTimeout(featureVisionInterval);
+      featureVisionInterval = null;
+      overlays.forEach(o => {
+        o.remove();
+      });
+      overlays.length = 0;
+    } else {
+      featureVisionInterval = setInterval(highlightAllFeatures, 500);
+    }
+  };
   window.onscroll = function () {
     overlays.forEach((overlay) => {
       overlay.updateOverlayPosition();
