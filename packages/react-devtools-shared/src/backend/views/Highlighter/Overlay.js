@@ -23,15 +23,12 @@ const assign = Object.assign;
 class OverlayRect {
   node: HTMLElement;
 
-  constructor(doc: Document, container: HTMLElement) {
+  constructor(doc: Document, container: HTMLElement, color) {
     this.node = doc.createElement('div');
 
-    const red = Math.random() * 255;
-    const green = Math.random() * 255;
-    const blue = Math.random() * 255;
     assign(this.node.style, {
       backgroundColor: 'rgba(120, 170, 210, 0.1)',
-      border: `1px solid rgba(${red}, ${green}, ${blue}, 0.8)`,
+      border: `2px solid ${color}`,
       pointerEvents: 'none',
       position: 'fixed',
     });
@@ -72,18 +69,119 @@ class OverlayRect {
   }
 }
 
+const styleEl = window.document.createElement('style');
+styleEl.innerHTML = `
+  /* The switch - the box around the slider */
+  .dschwarz-feature-switch {
+    pointer-events: all;
+    position: relative;
+    display: inline-block;
+    height: 16px;
+    width: 26px;
+    margin: 0px;
+    margin-left: 4px;
+  }
+  
+  /* Hide default HTML checkbox */
+  .dschwarz-feature-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    margin: 0px;
+  }
+  
+  /* The slider */
+  .dschwarz-feature-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    -webkit-transition: .2s;
+    transition: .2s;
+  }
+  
+  .dschwarz-feature-slider:before {
+    position: absolute;
+    content: "";
+    height: 12px;
+    width: 12px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    -webkit-transition: .2s;
+    transition: .2s;
+  }
+  
+  input:checked + .dschwarz-feature-slider {
+    background-color: #2196F3;
+  }
+  
+  input:focus + .dschwarz-feature-slider {
+    box-shadow: 0 0 1px #2196F3;
+  }
+  
+  input:checked + .dschwarz-feature-slider:before {
+    -webkit-transform: translateX(10px);
+    -ms-transform: translateX(10px);
+    transform: translateX(10px);
+  }
+`;
+window.document.head.appendChild(styleEl);
+
+class FeatureToggle {
+
+  container: HTMLElement
+  nameSpan: HTMLElement
+  input: HTMLElement
+  label: HTMLElement
+  switchSpan: HTMLElement
+
+  constructor(doc, container) {
+    this.container = doc.createElement('div');
+    this.label = doc.createElement('label');
+    this.switchSpan = doc.createElement('span');
+    this.nameSpan = doc.createElement('span');
+    this.input = doc.createElement('input');
+    this.label.appendChild(this.input);
+    this.label.appendChild(this.switchSpan);
+    this.container.appendChild(this.nameSpan);
+    this.container.appendChild(this.label);
+    container.appendChild(this.container);
+
+    this.label.className = 'dschwarz-feature-switch';
+    this.input.type = 'checkbox';
+    this.switchSpan.className = 'dschwarz-feature-slider';
+  }
+
+  update(name: string, value: any) {
+    this.input.checked = value;
+    this.nameSpan.textContent = name;
+  }
+
+  remove() {
+    if (this.label.parentNode) {
+      this.label.parentNode.removeChild(this.label);
+    }
+  }
+}
+
 class OverlayTip {
   tip: HTMLElement;
   nameSpan: HTMLElement;
-  dimSpan: HTMLElement;
+  featureContainer: HTMLElement;
+  document: HTMLElement;
 
-  constructor(doc: Document, container: HTMLElement) {
+  constructor(doc: Document, container: HTMLElement, color: string) {
     this.tip = doc.createElement('div');
     assign(this.tip.style, {
       display: 'flex',
       flexFlow: 'row nowrap',
-      backgroundColor: '#333740',
+      backgroundColor: 'rgba(51, 55, 64, 0.8)',
       borderRadius: '2px',
+      border: `2px solid ${color}`,
       fontFamily:
         '"SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace',
       fontWeight: 'bold',
@@ -93,7 +191,7 @@ class OverlayTip {
       fontSize: '12px',
       whiteSpace: 'nowrap',
     });
-
+    this.features = [];
     this.nameSpan = doc.createElement('span');
     this.tip.appendChild(this.nameSpan);
     assign(this.nameSpan.style, {
@@ -102,11 +200,13 @@ class OverlayTip {
       paddingRight: '0.5rem',
       marginRight: '0.5rem',
     });
-    this.dimSpan = doc.createElement('span');
-    this.tip.appendChild(this.dimSpan);
-    assign(this.dimSpan.style, {
+    this.featureContainer = doc.createElement('div');
+    this.tip.appendChild(this.featureContainer);
+    assign(this.featureContainer.style, {
       color: '#d7d7d7',
     });
+
+    this.document = doc;
 
     this.tip.style.zIndex = '10000000';
     container.appendChild(this.tip);
@@ -116,12 +216,29 @@ class OverlayTip {
     if (this.tip.parentNode) {
       this.tip.parentNode.removeChild(this.tip);
     }
+    this.features.forEach(f => f.remove());
+    this.features.length = 0;
+    this.document = null;
   }
 
-  updateText(name: string, width: number, height: number) {
+  updateText(name: string, width: number, height: number, featureFlags: any) {
     this.nameSpan.textContent = name;
-    this.dimSpan.textContent =
-      Math.round(width) + 'px × ' + Math.round(height) + 'px';
+
+    const featureFlagEntries = featureFlags ? featureFlags.entries().toArray() : [];
+
+    while (this.features.length > featureFlagEntries.length) {
+      const feature = this.features.pop();
+      feature.remove();
+    }
+
+    while (this.features.length < featureFlagEntries.length) {
+      const featureElement = new FeatureToggle(this.document, this.featureContainer);
+      this.features.push(featureElement);
+    }
+    featureFlagEntries.forEach(([featureName, featureValue], index) => {
+      const feature = this.features[index];
+      feature.update(featureName, featureValue);
+    });
   }
 
   updatePosition(dims: Box, bounds: Box) {
@@ -141,11 +258,18 @@ export default class Overlay {
   tip: OverlayTip;
   rects: Array<OverlayRect>;
   agent: Agent;
+  color: string;
 
   constructor(agent: Agent) {
     // Find the root window, because overlays are positioned relative to it.
     const currentWindow = window.__REACT_DEVTOOLS_TARGET_WINDOW__ || window;
     this.window = currentWindow;
+
+
+    const red = Math.random() * 255;
+    const green = Math.random() * 255;
+    const blue = Math.random() * 255;
+    this.color = `rgba(${red}, ${green}, ${blue}, 0.8)`
 
     // When opened in shells/dev, the tooltip should be bound by the app iframe, not by the topmost window.
     const tipBoundsWindow = window.__REACT_DEVTOOLS_TARGET_WINDOW__ || window;
@@ -155,7 +279,7 @@ export default class Overlay {
     this.container = doc.createElement('div');
     this.container.style.zIndex = '10000000';
 
-    this.tip = new OverlayTip(doc, this.container);
+    this.tip = new OverlayTip(doc, this.container, this.color);
     this.rects = [];
 
     this.agent = agent;
@@ -189,7 +313,7 @@ export default class Overlay {
     }
 
     while (this.rects.length < elements.length) {
-      this.rects.push(new OverlayRect(this.window.document, this.container));
+      this.rects.push(new OverlayRect(this.window.document, this.container, this.color));
     }
 
     const outerBox = {

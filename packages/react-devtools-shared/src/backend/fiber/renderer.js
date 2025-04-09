@@ -155,6 +155,8 @@ const FIBER_INSTANCE = 0;
 const VIRTUAL_INSTANCE = 1;
 const FILTERED_FIBER_INSTANCE = 2;
 
+const overlays = [];
+
 // This type represents a stateful instance of a Client Component i.e. a Fiber pair.
 // These instances also let us track stateful DevTools meta data like id and warnings.
 type FiberInstance = {
@@ -4687,9 +4689,21 @@ export function attach(
       .filter(i => i.hooks.find(hook => hook.name == "FeatureOn"))
       .toArray()
 
-    inspected.forEach(i => {
-      var overlay = new Overlay(__REACT_DEVTOOLS_GLOBAL_HOOK__.reactDevtoolsAgent);
-      overlay.inspect(findHostInstancesForElementID(i.id), i.id);
+    while (overlays.length > inspected.length) {
+      const overlay = overlays.pop();
+      overlay.remove();
+    }
+
+    while (overlays.length < inspected.length) {
+      overlays.push(new Overlay(__REACT_DEVTOOLS_GLOBAL_HOOK__.reactDevtoolsAgent));
+    }
+
+    inspected.forEach((inspectedElement, i) => {
+      overlays[i].inspect(
+        findHostInstancesForElementID(inspectedElement.id),
+        getDisplayNameForElementID(inspectedElement.id),
+        inspectedElement.hooks.find(hook => hook.name == "FeatureOn").value
+      );
     });
 
     return inspected;
