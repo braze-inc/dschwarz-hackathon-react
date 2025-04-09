@@ -159,11 +159,22 @@ class FeatureToggle {
   update(name: string, value: any) {
     this.input.checked = value;
     this.nameSpan.textContent = name;
+
+    this.input.onchange = (event) => {
+      if (window.__SET_FEATURE_FLIPPER__ && window.__CURRENT_FEATURES__) {
+        window.__SET_FEATURE_FLIPPER__({
+          ...window.__CURRENT_FEATURES__,
+          [name]: event.target.checked
+        });
+
+        window.highlightAllHooks();
+      }
+    }
   }
 
   remove() {
-    if (this.label.parentNode) {
-      this.label.parentNode.removeChild(this.label);
+    if (this.container.parentNode) {
+      this.container.parentNode.removeChild(this.container);
     }
   }
 }
@@ -296,12 +307,63 @@ export default class Overlay {
     if (this.container.parentNode) {
       this.container.parentNode.removeChild(this.container);
     }
+    this.elements = null;
+  }
+
+  updateOverlayPosition() {
+    if (!this.elements) return;
+
+    const outerBox = {
+      top: Number.POSITIVE_INFINITY,
+      right: Number.NEGATIVE_INFINITY,
+      bottom: Number.NEGATIVE_INFINITY,
+      left: Number.POSITIVE_INFINITY,
+    };
+    this.elements.forEach((element, index) => {
+      const box = getNestedBoundingClientRect(element, this.window);
+      const dims = getElementDimensions(element);
+
+      outerBox.top = Math.min(outerBox.top, box.top - dims.marginTop);
+      outerBox.right = Math.max(
+        outerBox.right,
+        box.left + box.width + dims.marginRight,
+      );
+      outerBox.bottom = Math.max(
+        outerBox.bottom,
+        box.top + box.height + dims.marginBottom,
+      );
+      outerBox.left = Math.min(outerBox.left, box.left - dims.marginLeft);
+
+      const rect = this.rects[index];
+      rect.update(box, dims);
+    });
+
+    const tipBounds = getNestedBoundingClientRect(
+      this.tipBoundsWindow.document.documentElement,
+      this.window,
+    );
+
+    this.tip.updatePosition(
+      {
+        top: outerBox.top,
+        left: outerBox.left,
+        height: outerBox.bottom - outerBox.top,
+        width: outerBox.right - outerBox.left,
+      },
+      {
+        top: tipBounds.top + this.tipBoundsWindow.scrollY,
+        left: tipBounds.left + this.tipBoundsWindow.scrollX,
+        height: this.tipBoundsWindow.innerHeight,
+        width: this.tipBoundsWindow.innerWidth,
+      },
+    );
   }
 
   inspect(nodes: $ReadOnlyArray<HTMLElement>, name?: ?string, featureFlags: any) {
     // We can't get the size of text nodes or comment nodes. React as of v15
     // heavily uses comment nodes to delimit text.
     const elements = nodes.filter(node => node.nodeType === Node.ELEMENT_NODE);
+    this.elements = elements;
 
     while (this.rects.length > elements.length) {
       const rect = this.rects.pop();

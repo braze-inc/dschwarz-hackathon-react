@@ -5895,6 +5895,11 @@ export function attach(
   }
 
   window.highlightAllHooks = highlightAllHooks;
+  window.onscroll = function () {
+    overlays.forEach((overlay) => {
+      overlay.updateOverlayPosition();
+    })
+  };
 
   return {
     cleanup,
