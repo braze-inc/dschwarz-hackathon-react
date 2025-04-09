@@ -4684,10 +4684,30 @@ export function attach(
   }
 
   function highlightAllFeatures() {
+    if (!featureVisionInterval) {
+      return;
+    }
+
     var inspected = idToDevToolsInstanceMap.keys()
       .map(elementId => inspectElementRaw(elementId))
       .filter(i => i.hooks != null)
-      .filter(i => i.hooks.find(hook => hook.name == "FeatureOn"))
+      .map(i => {
+        return {
+          id: i.id,
+          featureHook: i.hooks.find(hook => hook.name == "FeatureOn"),
+        }
+      })
+      .filter(i => i.featureHook != null && i.featureHook.value)
+      .filter(i => {
+        const unfilteredFeatures = i.featureHook.value.keys().filter(featureName => {
+          if (window.__HIDDEN_FEATURES__) {
+            return !window.__HIDDEN_FEATURES__[featureName];
+          } else {
+            return true;
+          }
+        }).toArray();
+        return unfilteredFeatures.length > 0;
+      })
       .toArray()
 
     while (overlays.length > inspected.length) {
@@ -4703,7 +4723,7 @@ export function attach(
       overlays[i].inspect(
         findHostInstancesForElementID(inspectedElement.id),
         getDisplayNameForElementID(inspectedElement.id),
-        inspectedElement.hooks.find(hook => hook.name == "FeatureOn").value
+        inspectedElement.featureHook.value
       );
     });
 
