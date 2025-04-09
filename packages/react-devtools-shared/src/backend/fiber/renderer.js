@@ -777,6 +777,10 @@ const rootToFiberInstanceMap: Map<FiberRoot, FiberInstance> = new Map();
 const idToDevToolsInstanceMap: Map<number, FiberInstance | VirtualInstance> =
   new Map();
 
+const inspectElementCache = new Map();
+
+setInterval(() => inspectElementCache.clear(), 1000 * 10);
+
 window.__dschwarz__idToInstanceMap = idToDevToolsInstanceMap
 
 // Map of canonical HostInstances to the nearest parent DevToolsInstance.
@@ -4104,16 +4108,23 @@ export function attach(
   }
 
   function inspectElementRaw(id: number): InspectedElement | null {
+    if (inspectElementCache.has(id)) {
+      return inspectElementCache.get(id);
+    }
     const devtoolsInstance = idToDevToolsInstanceMap.get(id);
     if (devtoolsInstance === undefined) {
       console.warn(`Could not find DevToolsInstance with id "${id}"`);
       return null;
     }
     if (devtoolsInstance.kind === VIRTUAL_INSTANCE) {
-      return inspectVirtualInstanceRaw(devtoolsInstance);
+      let result = inspectVirtualInstanceRaw(devtoolsInstance)
+      inspectElementCache.set(id, result)
+      return result;
     }
     if (devtoolsInstance.kind === FIBER_INSTANCE) {
-      return inspectFiberInstanceRaw(devtoolsInstance);
+      let result = inspectFiberInstanceRaw(devtoolsInstance);
+      inspectElementCache.set(id, result);
+      return result;
     }
     (devtoolsInstance: FilteredFiberInstance); // assert exhaustive
     throw new Error('Unsupported instance kind');
