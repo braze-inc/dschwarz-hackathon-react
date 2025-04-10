@@ -33,8 +33,6 @@ class OverlayRect {
       position: 'fixed',
     });
 
-    this.node.style.zIndex = '10000000';
-
     container.appendChild(this.node);
   }
 
@@ -71,6 +69,19 @@ class OverlayRect {
 
 const styleEl = window.document.createElement('style');
 styleEl.innerHTML = `
+  .dschwarz-react-devtools-overlay {
+    z-index: 10000000;
+  }
+  .dschwarz-react-devtools-overlay:hover {
+    z-index: 10000001;
+  }
+  .dschwarz-react-devtools-overlay > div {
+    z-index: 10000000;
+  }
+  .dschwarz-react-devtools-overlay:hover > div {
+    z-index: 10000001;
+  }
+
   /* The switch - the box around the slider */
   .dschwarz-feature-switch {
     pointer-events: all;
@@ -219,7 +230,6 @@ class OverlayTip {
 
     this.document = doc;
 
-    this.tip.style.zIndex = '10000000';
     container.appendChild(this.tip);
   }
 
@@ -288,7 +298,7 @@ export default class Overlay {
 
     const doc = currentWindow.document;
     this.container = doc.createElement('div');
-    this.container.style.zIndex = '10000000';
+    this.container.className = 'dschwarz-react-devtools-overlay';
 
     this.tip = new OverlayTip(doc, this.container, this.color);
     this.rects = [];
