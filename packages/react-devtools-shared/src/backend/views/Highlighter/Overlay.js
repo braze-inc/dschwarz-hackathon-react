@@ -23,13 +23,11 @@ const assign = Object.assign;
 class OverlayRect {
   node: HTMLElement;
 
-  constructor(doc: Document, container: HTMLElement, color) {
+  constructor(doc: Document, container: HTMLElement) {
     this.node = doc.createElement('div');
     this.node.className = "dschwarz-react-devtools-overlay-rect";
 
     assign(this.node.style, {
-      backgroundColor: 'rgba(120, 170, 210, 0.1)',
-      borderColor: `${color}`,
       position: 'fixed',
     });
 
@@ -78,16 +76,21 @@ styleEl.innerHTML = `
   body:has(.dschwarz-react-devtools-overlay:hover) .dschwarz-react-devtools-overlay:not(:hover) > div {
     opacity: 50%;
   }
+  .dschwarz-react-devtools-overlay > div {
+    border: 2px solid;
+    border-color: rgba(calc(var(--red) * 155 + 100), calc(var(--green) * 155 + 100), calc(var(--blue) * 155 + 100), 0.8);
+    pointer-events: none;
+  }
   .dschwarz-react-devtools-overlay:hover > div {
     z-index: 10000001;
-    border: 3px solid;
+    border-width: 3px;
+    border-style: solid;
   }
   
   .dschwarz-react-devtools-overlay-rect {
     padding: 1px;
-    border: 2px solid;
-    pointer-events: none;
     z-index: 9999999;
+    background-color: rgba(calc(var(--red) * 255), calc(var(--green) * 255), calc(var(--blue) * 255), 0.1);
   }
   .dschwarz-react-devtools-overlay:hover > .dschwarz-react-devtools-overlay-rect {
     padding: 0px;
@@ -95,9 +98,16 @@ styleEl.innerHTML = `
   
   .dschwarz-react-devtools-overlay-tip {
     padding: 3px 5px;
-    border: 2px solid;
-    pointer-events: none;
     z-index: 10000000;
+    display: flex;
+    flex-flow: row nowrap;
+    background-color: rgba(calc(var(--red) * 50), calc(var(--green) * 50), calc(var(--blue) * 50), 0.8);
+    border-radius: 2px;
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+    font-weight: bold;
+    position: fixed;
+    font-size: 12px;
+    white-space: nowrap;
   }
   
   .dschwarz-react-devtools-overlay-tip:hover {
@@ -221,22 +231,9 @@ class OverlayTip {
   featureContainer: HTMLElement;
   document: HTMLElement;
 
-  constructor(doc: Document, container: HTMLElement, color: string) {
+  constructor(doc: Document, container: HTMLElement) {
     this.tip = doc.createElement('div');
     this.tip.className = "dschwarz-react-devtools-overlay-tip";
-    assign(this.tip.style, {
-      display: 'flex',
-      flexFlow: 'row nowrap',
-      backgroundColor: 'rgba(51, 55, 64, 0.8)',
-      borderRadius: '2px',
-      borderColor: `${color}`,
-      fontFamily:
-        '"SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace',
-      fontWeight: 'bold',
-      position: 'fixed',
-      fontSize: '12px',
-      whiteSpace: 'nowrap',
-    });
     this.features = [];
     this.nameSpan = doc.createElement('span');
     this.tip.appendChild(this.nameSpan);
@@ -317,10 +314,14 @@ export default class Overlay {
     this.window = currentWindow;
 
 
-    const red = Math.random() * 255;
-    const green = Math.random() * 255;
-    const blue = Math.random() * 255;
-    this.color = `rgba(${red}, ${green}, ${blue}, 0.8)`
+    const red = Math.random();
+    const green = Math.random();
+    const blue = Math.random();
+
+    const total = red + green + blue;
+
+    // Normalized to add to 1
+    this.color = { red: red / total, green: green / total, blue: blue / total }
 
     // When opened in shells/dev, the tooltip should be bound by the app iframe, not by the topmost window.
     const tipBoundsWindow = window.__REACT_DEVTOOLS_TARGET_WINDOW__ || window;
@@ -329,8 +330,9 @@ export default class Overlay {
     const doc = currentWindow.document;
     this.container = doc.createElement('div');
     this.container.className = 'dschwarz-react-devtools-overlay';
+    this.container.style = `--red: ${this.color.red};--green: ${this.color.green};--blue: ${this.color.blue};`;
 
-    this.tip = new OverlayTip(doc, this.container, this.color);
+    this.tip = new OverlayTip(doc, this.container);
     this.rects = [];
 
     this.agent = agent;
@@ -415,7 +417,7 @@ export default class Overlay {
     }
 
     while (this.rects.length < elements.length) {
-      this.rects.push(new OverlayRect(this.window.document, this.container, this.color));
+      this.rects.push(new OverlayRect(this.window.document, this.container));
     }
 
     const outerBox = {
