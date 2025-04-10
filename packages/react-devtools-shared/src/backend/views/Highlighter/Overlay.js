@@ -221,6 +221,7 @@ class OverlayTip {
       borderRight: '1px solid #aaaaaa',
       paddingRight: '0.5rem',
       marginRight: '0.5rem',
+      pointerEvents: 'all',
     });
     this.featureContainer = doc.createElement('div');
     this.tip.appendChild(this.featureContainer);
