@@ -404,10 +404,10 @@ export default class Overlay {
       width: this.tipBoundsWindow.innerWidth,
     }
 
-    if (outerBox.top > bounds.top + bounds.height ||
-      outerBox.left > bounds.left + bounds.width ||
-      outerBox.bottom < bounds.top ||
-      outerBox.right < bounds.left) {
+    if (outerBox.top >= bounds.top + bounds.height ||
+      outerBox.left >= bounds.left + bounds.width ||
+      outerBox.bottom <= bounds.top ||
+      outerBox.right <= bounds.left) {
       // outside of viewport
       this.tip.hide();
     } else {
