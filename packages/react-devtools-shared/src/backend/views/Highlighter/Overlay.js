@@ -78,13 +78,6 @@ styleEl.innerHTML = `
   body:has(.dschwarz-react-devtools-overlay:hover) .dschwarz-react-devtools-overlay:not(:hover) > div {
     opacity: 50%;
   }
-  .dschwarz-react-devtools-overlay > div {
-    pointer-events: none;
-    z-index: 10000000;
-  }
-  .dschwarz-react-devtools-overlay > div:hover {
-    pointer-events: all;
-  }
   .dschwarz-react-devtools-overlay:hover > div {
     z-index: 10000001;
     border: 3px solid;
@@ -93,6 +86,8 @@ styleEl.innerHTML = `
   .dschwarz-react-devtools-overlay-rect {
     padding: 1px;
     border: 2px solid;
+    pointer-events: none;
+    z-index: 9999999;
   }
   .dschwarz-react-devtools-overlay:hover > .dschwarz-react-devtools-overlay-rect {
     padding: 0px;
@@ -101,6 +96,12 @@ styleEl.innerHTML = `
   .dschwarz-react-devtools-overlay-tip {
     padding: 3px 5px;
     border: 2px solid;
+    pointer-events: none;
+    z-index: 10000000;
+  }
+  
+  .dschwarz-react-devtools-overlay-tip:hover {
+    pointer-events: all;
   }
   .dschwarz-react-devtools-overlay:hover > .dschwarz-react-devtools-overlay-tip {
     padding: 2px 4px;
