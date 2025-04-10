@@ -25,10 +25,11 @@ class OverlayRect {
 
   constructor(doc: Document, container: HTMLElement, color) {
     this.node = doc.createElement('div');
+    this.node.className = "dschwarz-react-devtools-overlay-rect";
 
     assign(this.node.style, {
       backgroundColor: 'rgba(120, 170, 210, 0.1)',
-      border: `2px solid ${color}`,
+      borderColor: `${color}`,
       position: 'fixed',
     });
 
@@ -78,9 +79,28 @@ styleEl.innerHTML = `
     pointer-events: none;
     z-index: 10000000;
   }
-  .dschwarz-react-devtools-overlay:hover > div {
+  .dschwarz-react-devtools-overlay > div:hover {
     pointer-events: all;
+  }
+  .dschwarz-react-devtools-overlay:hover > div {
     z-index: 10000001;
+    border: 3px solid;
+  }
+  
+  .dschwarz-react-devtools-overlay-rect {
+    padding: 1px;
+    border: 2px solid;
+  }
+  .dschwarz-react-devtools-overlay:hover > .dschwarz-react-devtools-overlay-rect {
+    padding: 0px;
+  }
+  
+  .dschwarz-react-devtools-overlay-tip {
+    padding: 3px 5px;
+    border: 2px solid;
+  }
+  .dschwarz-react-devtools-overlay:hover > .dschwarz-react-devtools-overlay-tip {
+    padding: 2px 4px;
   }
 
   /* The switch - the box around the slider */
@@ -199,16 +219,16 @@ class OverlayTip {
 
   constructor(doc: Document, container: HTMLElement, color: string) {
     this.tip = doc.createElement('div');
+    this.tip.className = "dschwarz-react-devtools-overlay-tip";
     assign(this.tip.style, {
       display: 'flex',
       flexFlow: 'row nowrap',
       backgroundColor: 'rgba(51, 55, 64, 0.8)',
       borderRadius: '2px',
-      border: `2px solid ${color}`,
+      borderColor: `${color}`,
       fontFamily:
         '"SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace',
       fontWeight: 'bold',
-      padding: '3px 5px',
       position: 'fixed',
       fontSize: '12px',
       whiteSpace: 'nowrap',
@@ -258,8 +278,13 @@ class OverlayTip {
       this.features.push(featureElement);
     }
     featureFlagEntries.forEach(([featureName, featureValue], index) => {
+      let latestFeatureValue = window.__CURRENT_FEATURES__?.[featureName];
+      if (latestFeatureValue === undefined) {
+        latestFeatureValue = featureValue;
+      }
+
       const feature = this.features[index];
-      feature.update(featureName, featureValue);
+      feature.update(featureName, latestFeatureValue);
     });
   }
 
