@@ -116,6 +116,16 @@ styleEl.innerHTML = `
   .dschwarz-react-devtools-overlay:hover > .dschwarz-react-devtools-overlay-tip {
     padding: 2px 4px;
   }
+  
+  .dschwarz-react-devtools-overlay-tip a {
+    text-decoration: none;
+    color: #d7d7d7;
+  }
+  
+  .dschwarz-react-devtools-overlay-tip a:hover {
+    text-decoration: underline;
+    color: #d7d7f7;
+  }
 
   /* The switch - the box around the slider */
   .dschwarz-feature-switch {
@@ -189,7 +199,7 @@ class FeatureToggle {
     this.container = doc.createElement('div');
     this.label = doc.createElement('label');
     this.switchSpan = doc.createElement('span');
-    this.nameSpan = doc.createElement('span');
+    this.nameSpan = doc.createElement('a');
     this.input = doc.createElement('input');
     this.label.appendChild(this.input);
     this.label.appendChild(this.switchSpan);
@@ -211,6 +221,10 @@ class FeatureToggle {
 
     this.input.checked = latestFeatureValue;
     this.nameSpan.textContent = name;
+    this.nameSpan.href = `http://localhost:9001/legacy/feature_flipper_management_v2/features/${name}/feature-details?_clusters=US-01`
+    this.nameSpan.target = '_blank';
+    this.nameSpan.rel = 'noopener noreferrer';
+
     if (latestFeatureValue != value) {
       this.nameSpan.title = 'This component is using a stale feature value'
       assign(this.nameSpan.style, {
