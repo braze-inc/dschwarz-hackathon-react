@@ -29,7 +29,6 @@ class OverlayRect {
     assign(this.node.style, {
       backgroundColor: 'rgba(120, 170, 210, 0.1)',
       border: `2px solid ${color}`,
-      pointerEvents: 'none',
       position: 'fixed',
     });
 
@@ -76,9 +75,11 @@ styleEl.innerHTML = `
     z-index: 10000001;
   }
   .dschwarz-react-devtools-overlay > div {
+    pointer-events: none;
     z-index: 10000000;
   }
   .dschwarz-react-devtools-overlay:hover > div {
+    pointer-events: all;
     z-index: 10000001;
   }
 
@@ -208,7 +209,6 @@ class OverlayTip {
         '"SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace',
       fontWeight: 'bold',
       padding: '3px 5px',
-      pointerEvents: 'none',
       position: 'fixed',
       fontSize: '12px',
       whiteSpace: 'nowrap',
