@@ -75,6 +75,9 @@ styleEl.innerHTML = `
   .dschwarz-react-devtools-overlay:hover {
     z-index: 10000001;
   }
+  body:has(.dschwarz-react-devtools-overlay:hover) .dschwarz-react-devtools-overlay:not(:hover) > div {
+    opacity: 50%;
+  }
   .dschwarz-react-devtools-overlay > div {
     pointer-events: none;
     z-index: 10000000;
