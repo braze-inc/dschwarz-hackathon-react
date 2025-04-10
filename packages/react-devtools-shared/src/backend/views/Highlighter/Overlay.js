@@ -202,9 +202,26 @@ class FeatureToggle {
     this.switchSpan.className = 'dschwarz-feature-slider';
   }
 
-  update(name: string, value: any) {
-    this.input.checked = value;
+  update(name: string, value: boolean, staleValue: boolean) {
+
+    let latestFeatureValue = window.__CURRENT_FEATURES__?.[name];
+    if (latestFeatureValue === undefined) {
+      latestFeatureValue = value;
+    }
+
+    this.input.checked = latestFeatureValue;
     this.nameSpan.textContent = name;
+    if (latestFeatureValue != value) {
+      this.nameSpan.title = 'This component is using a stale feature value'
+      assign(this.nameSpan.style, {
+        color: 'yellow'
+      });
+    } else {
+      this.nameSpan.removeAttribute('title')
+      assign(this.nameSpan.style, {
+        color: null
+      });
+    }
 
     this.input.onchange = (event) => {
       if (window.__SET_FEATURE_FLIPPER__ && window.__CURRENT_FEATURES__) {
@@ -279,13 +296,8 @@ class OverlayTip {
       this.features.push(featureElement);
     }
     featureFlagEntries.forEach(([featureName, featureValue], index) => {
-      let latestFeatureValue = window.__CURRENT_FEATURES__?.[featureName];
-      if (latestFeatureValue === undefined) {
-        latestFeatureValue = featureValue;
-      }
-
       const feature = this.features[index];
-      feature.update(featureName, latestFeatureValue);
+      feature.update(featureName, featureValue);
     });
   }
 
