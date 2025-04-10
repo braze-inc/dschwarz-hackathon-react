@@ -289,6 +289,18 @@ class OverlayTip {
     });
   }
 
+  show() {
+    assign(this.tip.style, {
+      display: 'flex'
+    });
+  }
+
+  hide() {
+    assign(this.tip.style, {
+      display: 'none'
+    });
+  }
+
   updatePosition(dims: Box, bounds: Box) {
     const tipRect = this.tip.getBoundingClientRect();
     const tipPos = findTipPos(dims, bounds, {
@@ -385,20 +397,31 @@ export default class Overlay {
       this.window,
     );
 
-    this.tip.updatePosition(
-      {
-        top: outerBox.top,
-        left: outerBox.left,
-        height: outerBox.bottom - outerBox.top,
-        width: outerBox.right - outerBox.left,
-      },
-      {
-        top: tipBounds.top + this.tipBoundsWindow.scrollY,
-        left: tipBounds.left + this.tipBoundsWindow.scrollX,
-        height: this.tipBoundsWindow.innerHeight,
-        width: this.tipBoundsWindow.innerWidth,
-      },
-    );
+    const bounds = {
+      top: tipBounds.top + this.tipBoundsWindow.scrollY,
+      left: tipBounds.left + this.tipBoundsWindow.scrollX,
+      height: this.tipBoundsWindow.innerHeight,
+      width: this.tipBoundsWindow.innerWidth,
+    }
+
+    if (outerBox.top > bounds.top + bounds.height ||
+      outerBox.left > bounds.left + bounds.width ||
+      outerBox.bottom < bounds.top ||
+      outerBox.right < bounds.left) {
+      // outside of viewport
+      this.tip.hide();
+    } else {
+      this.tip.show();
+      this.tip.updatePosition(
+        {
+          top: outerBox.top,
+          left: outerBox.left,
+          height: outerBox.bottom - outerBox.top,
+          width: outerBox.right - outerBox.left,
+        },
+        bounds,
+      );
+    };
   }
 
   inspect(nodes: $ReadOnlyArray<HTMLElement>, name?: ?string, featureFlags: any) {
