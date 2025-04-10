@@ -90,7 +90,7 @@ styleEl.innerHTML = `
   .dschwarz-react-devtools-overlay-rect {
     padding: 1px;
     z-index: 9999999;
-    background-color: rgba(calc(var(--red) * 255), calc(var(--green) * 255), calc(var(--blue) * 255), 0.1);
+    background-color: rgba(calc(var(--red) * 50 + 170), calc(var(--green) * 50 + 170), calc(var(--blue) * 50 + 170), 0.1);
   }
   .dschwarz-react-devtools-overlay:hover > .dschwarz-react-devtools-overlay-rect {
     padding: 0px;
